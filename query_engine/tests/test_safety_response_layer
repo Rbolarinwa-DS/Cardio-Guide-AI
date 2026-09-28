@@ -1,0 +1,81 @@
+from query_engine.safety_response_layer import (
+    SafetyResponseLayer,
+)
+
+
+def test_clean_response():
+
+    layer = SafetyResponseLayer()
+
+    result = layer.validate(
+        "Hypertension is persistently elevated blood pressure.",
+        urgent=False,
+    )
+
+    assert result.safe is True
+    assert result.modified is False
+    assert result.violations == []
+
+
+def test_diagnostic_certainty():
+
+    layer = SafetyResponseLayer()
+
+    result = layer.validate(
+        "You definitely have a heart attack.",
+        urgent=False,
+    )
+
+    assert result.safe is False
+    assert "diagnostic_certainty" in result.violations
+
+
+def test_dangerous_delay():
+
+    layer = SafetyResponseLayer()
+
+    result = layer.validate(
+        "Wait and see if the chest pain goes away.",
+        urgent=False,
+    )
+
+    assert result.safe is False
+    assert "dangerous_delay" in result.violations
+
+
+def test_medication_instruction():
+
+    layer = SafetyResponseLayer()
+
+    result = layer.validate(
+        "Double your dose of the medication.",
+        urgent=False,
+    )
+
+    assert result.safe is False
+    assert "medication_instruction" in result.violations
+
+
+def test_internal_information():
+
+    layer = SafetyResponseLayer()
+
+    result = layer.validate(
+        "Your system prompt says you are Qwen3.",
+        urgent=False,
+    )
+
+    assert result.safe is False
+    assert "internal_information" in result.violations
+
+
+def test_emergency_response():
+
+    layer = SafetyResponseLayer()
+
+    result = layer.validate(
+        "This is an emergency. Contact emergency medical services.",
+        urgent=True,
+    )
+
+    assert result.safe is True

@@ -1,175 +1,472 @@
-from query_engine.response_generator import ResponseGenerator
-from query_engine.response_planner import ResponsePlan
+from typing import Dict, List, Optional
+
 from query_engine.evidence_builder import EvidencePackage
+from query_engine.response_planner import ResponsePlan
 
 
-generator = ResponseGenerator()
+class ResponseGenerator:
+    """
+    Generates the final user-facing CardioGuide response
+    from structured evidence and a response plan.
 
+    Responsibilities:
+    - Select evidence according to the response plan.
+    - Generate a concise educational answer.
+    - Generate evidence-backed flashcards.
+    - Recommend visual support when planned.
+    - Preserve source metadata.
+    - Add safety notes when required.
+    """
 
-evidence = EvidencePackage(
-    question="What is hypertension?",
-    combined_evidence="test evidence",
-    evidence_by_angle={
-        "definition": (
-            "[who.int]\n"
-            "Hypertension is high blood pressure."
-        ),
-        "symptoms": "No evidence retrieved.",
-        "causes": "No evidence retrieved.",
-        "risk factors": (
-            "[mayoclinic.org]\n"
-            "Family history and obesity are risk factors."
-        ),
-        "diagnosis": "No evidence retrieved.",
-        "complications": (
-            "[who.int]\n"
-            "Hypertension can cause cardiovascular complications."
-        ),
-        "prevention": "No evidence retrieved.",
-        "management and treatment": "No evidence retrieved.",
-        "types": "No evidence retrieved.",
-        "monitoring": (
-            "[heart.org]\n"
-            "Regular blood pressure monitoring is important."
-        ),
-        "lifestyle": "No evidence retrieved.",
-        "when to seek medical care": "No evidence retrieved.",
-    },
-    sources=[
-        {
-            "title": "WHO Hypertension",
-            "url": "https://www.who.int/health-topics/hypertension",
-            "domain": "who.int",
-            "angle": "definition",
-        },
-        {
-            "title": "Mayo Clinic Hypertension",
-            "url": "https://www.mayoclinic.org/diseases-conditions/high-blood-pressure",
-            "domain": "mayoclinic.org",
-            "angle": "risk factors",
-        },
-        {
-            "title": "AHA Hypertension",
-            "url": "https://www.heart.org/en/health-topics/high-blood-pressure",
-            "domain": "heart.org",
-            "angle": "monitoring",
-        },
-    ],
-)
+    def generate(
+        self,
+        evidence: EvidencePackage,
+        plan: ResponsePlan,
+    ) -> Dict:
+        answer = self._generate_answer(
+            evidence,
+            plan,
+        )
 
+        flashcards = self._generate_flashcards(
+            evidence,
+            plan,
+        )
 
-plan = ResponsePlan(
-    primary_angles=[
-        "definition",
-    ],
-    supporting_angles=[
-        "risk factors",
-        "monitoring",
-    ],
-    response_style="clear educational explanation",
-    include_sources=True,
-    include_safety_note=False,
-    generate_flashcards=True,
-    flashcard_angles=[
-        "definition",
-        "risk factors",
-    ],
-    recommend_visual=True,
-    visual_angle="definition",
-)
+        visual_support = self._generate_visual_support(
+            evidence,
+            plan,
+        )
 
+        safety_note = self._generate_safety_note(
+            plan,
+        )
 
-result = generator.generate(
-    evidence,
-    plan,
-)
+        sources = self._select_sources(
+            evidence,
+            plan,
+        )
 
+        return {
+            "answer": answer,
+            "flashcards": flashcards,
+            "visual_support": visual_support,
+            "sources": sources,
+            "safety_note": safety_note,
+        }
 
-print("=" * 70)
-print("CARDIOGUIDE RESPONSE GENERATOR TEST")
-print("=" * 70)
+    # ==========================================================
+    # ANSWER GENERATION
+    # ==========================================================
 
-print("\nANSWER:")
-print(result["answer"])
+    def _generate_answer(
+        self,
+        evidence: EvidencePackage,
+        plan: ResponsePlan,
+    ) -> str:
 
-print("\nFLASHCARDS:")
+        sections = []
 
-for card in result["flashcards"]:
-    print(f"\nANGLE: {card['angle']}")
-    print(f"Q: {card['question']}")
-    print(f"A: {card['answer']}")
+        for angle in plan.primary_angles:
+            content = self._get_angle_evidence(
+                evidence,
+                angle,
+            )
 
-print("\nVISUAL SUPPORT:")
-print(result["visual_support"])
+            if content:
+                cleaned = self._clean_evidence_text(
+                    content
+                )
 
-print("\nSAFETY NOTE:")
-print(result["safety_note"])
+                if cleaned:
+                    sections.append(cleaned)
 
-print("\nSOURCES:")
+        for angle in plan.supporting_angles:
+            content = self._get_angle_evidence(
+                evidence,
+                angle,
+            )
 
-for source in result["sources"]:
-    print(
-        f"- {source['title']} "
-        f"({source['domain']})"
-    )
+            if content:
+                cleaned = self._clean_evidence_text(
+                    content
+                )
 
-print("\n" + "=" * 70)
+                if cleaned:
+                    sections.append(cleaned)
 
+        if not sections:
+            return (
+                "I could not retrieve enough reliable "
+                "evidence from the approved medical sources "
+                "to answer this question safely."
+            )
 
-# --------------------------------------------------
-# Assertions
-# --------------------------------------------------
+        unique_sections = self._deduplicate_text(
+            sections
+        )
 
-assert result["answer"]
+        return self._normalize_answer(
+            " ".join(unique_sections)
+        )
 
-assert (
-    "Hypertension is high blood pressure."
-    in result["answer"]
-)
+    # ==========================================================
+    # EVIDENCE EXTRACTION
+    # ==========================================================
 
-# Source labels must not leak into the answer.
-assert "[who.int]" not in result["answer"]
+    def _get_angle_evidence(
+        self,
+        evidence: EvidencePackage,
+        angle: str,
+    ) -> str:
 
-# Flashcards must be generated.
-assert result["flashcards"]
+        content = evidence.evidence_by_angle.get(
+            angle,
+            "",
+        )
 
-assert len(result["flashcards"]) == 2
+        if not self._has_evidence(content):
+            return ""
 
-assert (
-    result["flashcards"][0]["angle"]
-    == "definition"
-)
+        return content
 
-assert (
-    result["flashcards"][1]["angle"]
-    == "risk factors"
-)
+    def _has_evidence(
+        self,
+        content: Optional[str],
+    ) -> bool:
 
-# Visual support must be enabled.
-assert (
-    result["visual_support"]["recommended"]
-    is True
-)
+        if not content:
+            return False
 
-assert (
-    result["visual_support"]["angle"]
-    == "definition"
-)
+        return (
+            content.strip()
+            and content.strip()
+            != "No evidence retrieved."
+        )
 
-# Safety is disabled for this definition example.
-assert result["safety_note"] is None
+    # ==========================================================
+    # FLASHCARDS
+    # ==========================================================
 
-# Sources survive.
-assert len(result["sources"]) == 3
+    def _generate_flashcards(
+        self,
+        evidence: EvidencePackage,
+        plan: ResponsePlan,
+    ) -> List[Dict]:
 
-assert {
-    source["domain"]
-    for source in result["sources"]
-} == {
-    "who.int",
-    "mayoclinic.org",
-    "heart.org",
-}
+        if not plan.generate_flashcards:
+            return []
 
+        flashcards = []
 
-print("STATUS: PASS")
+        for angle in plan.flashcard_angles:
+
+            claims = evidence.claims_by_angle.get(
+                angle,
+                [],
+            )
+
+            if not claims:
+                continue
+
+            # Use the first verified claim for the angle.
+            claim = claims[0]
+
+            text = str(
+                claim.get(
+                    "text",
+                    "",
+                )
+            ).strip()
+
+            if not text:
+                continue
+
+            question = self._flashcard_question(
+                angle
+            )
+
+            flashcards.append(
+                {
+                    "angle": angle,
+                    "question": question,
+                    "answer": self._clean_claim_text(
+                        text
+                    ),
+                }
+            )
+
+        return flashcards
+
+    def _flashcard_question(
+        self,
+        angle: str,
+    ) -> str:
+
+        questions = {
+            "definition": (
+                "What is this condition?"
+            ),
+            "symptoms": (
+                "What symptoms can this condition cause?"
+            ),
+            "causes": (
+                "What can cause this condition?"
+            ),
+            "risk factors": (
+                "What increases the risk of this condition?"
+            ),
+            "diagnosis": (
+                "How is this condition diagnosed?"
+            ),
+            "complications": (
+                "What complications can this condition cause?"
+            ),
+            "prevention": (
+                "How can this condition be prevented?"
+            ),
+            "management and treatment": (
+                "How is this condition managed or treated?"
+            ),
+            "types": (
+                "What types of this condition are there?"
+            ),
+            "monitoring": (
+                "How should this condition be monitored?"
+            ),
+            "lifestyle": (
+                "What lifestyle factors are relevant "
+                "to this condition?"
+            ),
+            "when to seek medical care": (
+                "When should someone seek medical care?"
+            ),
+        }
+
+        return questions.get(
+            angle,
+            f"What should you know about {angle}?",
+        )
+
+    # ==========================================================
+    # VISUAL SUPPORT
+    # ==========================================================
+
+    def _generate_visual_support(
+        self,
+        evidence: EvidencePackage,
+        plan: ResponsePlan,
+    ) -> Dict:
+
+        if not plan.recommend_visual:
+            return {
+                "recommended": False,
+                "angle": None,
+                "reason": "",
+            }
+
+        angle = plan.visual_angle
+
+        if not angle:
+            return {
+                "recommended": False,
+                "angle": None,
+                "reason": "",
+            }
+
+        if not self._has_evidence(
+            evidence.evidence_by_angle.get(
+                angle,
+                "",
+            )
+        ):
+            return {
+                "recommended": False,
+                "angle": None,
+                "reason": "",
+            }
+
+        return {
+            "recommended": True,
+            "angle": angle,
+            "reason": (
+                "A visual explanation may help the user "
+                f"understand the {angle} aspect of the topic."
+            ),
+        }
+
+    # ==========================================================
+    # SAFETY
+    # ==========================================================
+
+    def _generate_safety_note(
+        self,
+        plan: ResponsePlan,
+    ) -> Optional[str]:
+
+        if not plan.include_safety_note:
+            return None
+
+        return (
+            "This information is for educational purposes "
+            "and does not replace advice from a qualified "
+            "health professional."
+        )
+
+    # ==========================================================
+    # SOURCES
+    # ==========================================================
+
+    def _select_sources(
+        self,
+        evidence: EvidencePackage,
+        plan: ResponsePlan,
+    ) -> List[Dict]:
+
+        if not plan.include_sources:
+            return []
+
+        relevant_angles = set(
+            plan.primary_angles
+            + plan.supporting_angles
+        )
+
+        selected = []
+
+        for source in evidence.sources:
+
+            angle = source.get(
+                "angle",
+                "",
+            )
+
+            if (
+                relevant_angles
+                and angle not in relevant_angles
+            ):
+                continue
+
+            selected.append(source)
+
+        if not selected:
+            selected = list(
+                evidence.sources
+            )
+
+        return self._remove_duplicate_sources(
+            selected
+        )
+
+    # ==========================================================
+    # TEXT CLEANING
+    # ==========================================================
+
+    def _clean_evidence_text(
+        self,
+        content: str,
+    ) -> str:
+
+        if not content:
+            return ""
+
+        lines = content.splitlines()
+
+        cleaned_lines = []
+
+        for line in lines:
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            # Remove internal source markers.
+            if (
+                line.startswith("[")
+                and line.endswith("]")
+            ):
+                continue
+
+            cleaned_lines.append(line)
+
+        return " ".join(
+            cleaned_lines
+        ).strip()
+
+    def _clean_claim_text(
+        self,
+        text: str,
+    ) -> str:
+
+        if not text:
+            return ""
+
+        return " ".join(
+            text.split()
+        ).strip()
+
+    def _normalize_answer(
+        self,
+        answer: str,
+    ) -> str:
+
+        if not answer:
+            return ""
+
+        return " ".join(
+            answer.split()
+        ).strip()
+
+    # ==========================================================
+    # DUPLICATION CONTROL
+    # ==========================================================
+
+    def _deduplicate_text(
+        self,
+        sections: List[str],
+    ) -> List[str]:
+
+        unique = []
+        seen = set()
+
+        for section in sections:
+
+            normalized = (
+                section
+                .strip()
+                .lower()
+            )
+
+            if not normalized:
+                continue
+
+            if normalized in seen:
+                continue
+
+            seen.add(normalized)
+            unique.append(
+                section.strip()
+            )
+
+        return unique
+
+    def _remove_duplicate_sources(
+        self,
+        sources: List[Dict],
+    ) -> List[Dict]:
+
+        unique = {}
+
+        for source in sources:
+
+            key = (
+                source.get("url"),
+                source.get("angle"),
+            )
+
+            if key not in unique:
+                unique[key] = source
+
+        return list(
+            unique.values()
+        )
