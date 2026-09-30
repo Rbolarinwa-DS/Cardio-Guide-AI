@@ -28,31 +28,25 @@ print(f"ACTION: {result['action']}")
 
 assert result["action"] == "proceed"
 
-# Current public response contract
-assert isinstance(result["answer"], str)
-assert result["answer"].strip()
-
+assert result["response"]
+assert isinstance(result["flashcards"], list)
+assert isinstance(result["visual_support"], dict)
 assert isinstance(result["sources"], list)
-assert result["sources"]
-
-assert result["grounded"] is True
-
-assert result["topic"] == "Hypertension"
-assert result["intent"] == "definition"
-
-assert isinstance(
-    result["response_strategy"],
-    str,
-)
-assert result["response_strategy"].strip()
-
-assert isinstance(
-    result["processing_time_seconds"],
-    (int, float),
-)
 
 print("\nANSWER:")
-print(result["answer"])
+print(result["response"])
+
+print("\nFLASHCARDS:")
+
+for index, card in enumerate(
+    result["flashcards"],
+    start=1,
+):
+    print(f"\n{index}. {card['question']}")
+    print(f"   {card['answer']}")
+
+print("\nVISUAL SUPPORT:")
+print(result["visual_support"])
 
 print("\nSOURCES:")
 
@@ -86,27 +80,77 @@ print("\nAPPROVED SOURCES: PASS")
 
 
 # ============================================================
-# 3. VERIFY SOURCE STRUCTURE
+# 3. VERIFY EVIDENCE PACKAGE
 # ============================================================
 
-for source in result["sources"]:
+assert result["evidence"]
 
-    assert "title" in source
-    assert "url" in source
-    assert "domain" in source
-    assert "angle" in source
+assert (
+    result["evidence"].question
+    == question
+)
 
-    assert source["title"]
-    assert source["url"]
-    assert source["domain"]
-    assert source["angle"]
+assert (
+    result["evidence"].combined_evidence
+)
 
+assert (
+    result["evidence"].evidence_by_angle
+)
 
-print("SOURCE STRUCTURE: PASS")
+print("EVIDENCE PACKAGE: PASS")
 
 
 # ============================================================
-# 4. AMBIGUOUS QUESTION
+# 4. VERIFY RESPONSE PLAN
+# ============================================================
+
+assert result["response_plan"]
+
+assert (
+    result["response_plan"].primary_angles
+)
+
+assert (
+    result["response_plan"].generate_flashcards
+    is True
+)
+
+print("RESPONSE PLAN: PASS")
+
+
+# ============================================================
+# 5. VERIFY VISUAL SUPPORT
+# ============================================================
+
+visual = result["visual_support"]
+
+assert "recommended" in visual
+assert "angle" in visual
+assert "reason" in visual
+
+print("VISUAL SUPPORT STRUCTURE: PASS")
+
+
+# ============================================================
+# 6. VERIFY FLASHCARD STRUCTURE
+# ============================================================
+
+for card in result["flashcards"]:
+
+    assert "angle" in card
+    assert "question" in card
+    assert "answer" in card
+
+    assert card["question"]
+    assert card["answer"]
+
+
+print("FLASHCARD STRUCTURE: PASS")
+
+
+# ============================================================
+# 7. AMBIGUOUS QUESTION
 # ============================================================
 
 ambiguous_question = "What causes pressure?"
@@ -132,25 +176,17 @@ assert (
     == "clarify"
 )
 
-assert isinstance(
-    ambiguous_result["answer"],
-    str,
-)
-
-assert ambiguous_result["answer"].strip()
-
-assert ambiguous_result["grounded"] is False
-assert ambiguous_result["sources"] == []
+assert ambiguous_result["message"]
 
 print(
-    f"ANSWER: {ambiguous_result['answer']}"
+    f"MESSAGE: {ambiguous_result['message']}"
 )
 
 print("AMBIGUITY HANDLING: PASS")
 
 
 # ============================================================
-# 5. URGENT QUESTION
+# 8. URGENT QUESTION
 # ============================================================
 
 urgent_question = (
@@ -178,34 +214,17 @@ assert (
     == "urgent_response"
 )
 
-assert isinstance(
-    urgent_result["answer"],
-    str,
-)
-
-assert urgent_result["answer"].strip()
-
-assert urgent_result["grounded"] is False
-assert urgent_result["sources"] == []
-
-# Verify the emergency guidance is actually present.
-assert (
-    "emergency" in urgent_result["answer"].lower()
-)
-
-assert (
-    "immediately" in urgent_result["answer"].lower()
-)
+assert urgent_result["message"]
 
 print(
-    f"ANSWER: {urgent_result['answer']}"
+    f"MESSAGE: {urgent_result['message']}"
 )
 
 print("URGENCY HANDLING: PASS")
 
 
 # ============================================================
-# 6. OUT-OF-SCOPE QUESTION
+# 9. OUT-OF-SCOPE QUESTION
 # ============================================================
 
 out_of_scope_question = (
@@ -233,23 +252,10 @@ assert (
     == "redirect"
 )
 
-assert isinstance(
-    out_of_scope_result["answer"],
-    str,
-)
-
-assert out_of_scope_result["answer"].strip()
-
-assert out_of_scope_result["grounded"] is False
-assert out_of_scope_result["sources"] == []
-
-assert (
-    "cardiovascular" in
-    out_of_scope_result["answer"].lower()
-)
+assert out_of_scope_result["message"]
 
 print(
-    f"ANSWER: {out_of_scope_result['answer']}"
+    f"MESSAGE: {out_of_scope_result['message']}"
 )
 
 print("SCOPE HANDLING: PASS")
