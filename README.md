@@ -1,764 +1,574 @@
 # ❤️ CardioGuide AI
 
-### Making cardiovascular health easier to understand, one conversation at a time.
+**Understand your heart health, one conversation at a time.**
 
-[![Status](https://img.shields.io/badge/Status-Active%20Development-orange)]()
-[![Phase](https://img.shields.io/badge/Phase-2%20%7C%20Medical%20Knowledge%20Design-blue)]()
-[![Domain](https://img.shields.io/badge/Domain-Healthcare%20AI-red)]()
-[![Focus](https://img.shields.io/badge/Focus-Conversational%20AI%20%7C%20RAG%20%7C%20Healthcare-green)]()
+<p align="center">
+  <a href="https://cardio-guid.lovable.app/">
+    <img src="https://img.shields.io/badge/🚀_LIVE_DEMO-Open_CardioGuide_AI-16a34a?style=for-the-badge" alt="Open CardioGuide AI Live Demo">
+  </a>
+</p>
 
----
+<p align="center">
+  A conversational cardiovascular health education assistant built with AI, web research, and source-grounded responses to make complex medical information easier to understand.
+</p>
 
-## 📌 Overview
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-FastAPI-009688?style=flat-square" alt="Python and FastAPI">
+  <img src="https://img.shields.io/badge/AI-Groq%20%7C%20GPT--OSS%20120B-7C3AED?style=flat-square" alt="Groq GPT-OSS 120B">
+  <img src="https://img.shields.io/badge/Retrieval-Serper-2563EB?style=flat-square" alt="Serper">
+  <img src="https://img.shields.io/badge/Database-Neon%20PostgreSQL-16A34A?style=flat-square" alt="Neon PostgreSQL">
+  <img src="https://img.shields.io/badge/Frontend-React%20%7C%20TypeScript-3178C6?style=flat-square" alt="React and TypeScript">
+</p>
 
-**CardioGuide AI** is an AI-powered cardiovascular health education platform designed to make complex cardiovascular information easier to understand through conversational AI and structured educational modules.
-
-The platform combines a conversational AI assistant with a curated cardiovascular knowledge base covering diseases, medications, blood pressure, cholesterol, lifestyle, and medical-report terminology. Rather than simply generating responses from a general-purpose language model, the project is being designed around **structured medical knowledge, retrieval-based information access, source validation, and responsible AI boundaries**.
-
-CardioGuide AI is intended to help users **understand** cardiovascular health information in accessible language. It is explicitly designed as an **educational and informational system, not a diagnostic or treatment system**.
-
-The project is currently in active development, with the current focus on designing the medical knowledge architecture and establishing the information pipeline that will eventually support the conversational AI system.
-
----
-
-# 🎯 Problem Statement
-
-Cardiovascular health information can be difficult for non-specialists to understand.
-
-Medical terminology, clinical reports, medication information, blood-pressure readings, cholesterol measurements, and disease descriptions are often presented in language that assumes medical knowledge.
-
-At the same time, general-purpose conversational AI systems can produce information that is:
-
-* difficult for users to interpret,
-* insufficiently grounded in trusted sources,
-* inconsistent in how information is presented,
-* potentially unsafe when used for medical decision-making.
-
-CardioGuide AI explores how a conversational AI system can be designed to provide **clear, structured, source-grounded cardiovascular education** while maintaining appropriate safety boundaries.
+> **Medical disclaimer:** CardioGuide AI is an educational software project, not a medical device. It does not replace professional medical advice, diagnosis, or treatment. Its responses may be inaccurate or incomplete.
 
 ---
 
-# 💡 Project Vision
+## Table of Contents
 
-The goal is not simply to build another chatbot.
+- [Overview](#overview)
+- [Live Demo and Screenshots](#live-demo-and-screenshots)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [How It Works](#how-it-works)
+- [Technology Stack](#technology-stack)
+- [API Overview](#api-overview)
+- [Database Design](#database-design)
+- [Healthcare AI Safety](#healthcare-ai-safety)
+- [Testing and Evaluation](#testing-and-evaluation)
+- [Project Structure](#project-structure)
+- [Project Status](#project-status)
+- [Roadmap](#roadmap)
+- [Limitations](#limitations)
+- [Getting Started](#getting-started)
+- [Author](#author)
 
-The goal is to build a **specialized healthcare education system** in which:
+---
+
+## Overview
+
+Cardiovascular health information can be difficult to understand without a medical background. Blood pressure readings, cholesterol levels, medication terminology, and medical reports often contain concepts that are unfamiliar to the people who need to understand them.
+
+General-purpose chatbots can explain medical concepts, but answers may be unsourced, inconsistent, or inappropriate for situations that require professional care.
+
+**CardioGuide AI** aims to make cardiovascular health education more accessible through a conversational interface backed by a dedicated research and response-generation pipeline.
+
+Rather than relying entirely on a language model's internal knowledge, the system retrieves relevant web information, organizes available evidence, and generates accessible explanations with source attribution where available.
+
+The project combines full-stack development, retrieval-augmented generation (RAG), API integration, database persistence, and safety-oriented request routing in one application.
+
+## Live Demo and Screenshots
+
+### Try the application
+
+**[🚀 Open CardioGuide AI — Live Demo](https://cardio-guid.lovable.app/)**
+
+The application is deployed on Lovable. The backend API is hosted separately on Render.
+
+- [Backend API](https://cardio-guide-ai.onrender.com)
+- [API Health Check](https://cardio-guide-ai.onrender.com/health)
+
+### Application screenshots
+
+#### 1. Landing Page
+
+![CardioGuide AI landing page](phase_1_research_engine/pictures/landing.png)
+
+#### 2. AI Chat Assistant
+
+![CardioGuide AI chat interface](phase_1_research_engine/pictures/chat.png)
+
+#### 3. Additional Application View
+
+![Additional CardioGuide AI interface](phase_1_research_engine/pictures/extra.png)
+
+---
+
+## Key Features
+
+| Feature | Description |
+|---|---|
+| Conversational AI assistant | Answers cardiovascular health education questions in accessible language. |
+| Query normalization | Handles common abbreviations, misspellings, and informal wording. |
+| Intent and topic analysis | Identifies the subject and general purpose of a user's question. |
+| Medical web research | Retrieves relevant information through the Serper API. |
+| Evidence construction | Organizes retrieved material into context for response generation. |
+| LLM integration | Uses Groq-hosted GPT-OSS 120B for language generation. |
+| Source attribution | Returns available source information alongside educational responses. |
+| Safety-oriented routing | Separates ambiguous, potentially urgent, and out-of-scope requests. |
+| Conversation persistence | Stores users, conversations, and messages in PostgreSQL. |
+| REST API | Exposes the backend through FastAPI endpoints. |
+
+### Planned educational modules
+
+- **Blood Pressure:** Hypertension, blood pressure readings, and related concepts.
+- **Cholesterol:** LDL, HDL, triglycerides, and general cardiovascular risk education.
+- **Medication Guide:** General explanations of medication classes and questions to discuss with a clinician.
+- **Disease Library:** Educational material about cardiovascular conditions.
+- **Lifestyle:** Nutrition, exercise, sleep, stress, and other lifestyle factors.
+- **Medical Report Explainer:** A planned extension for explaining medical terminology in plain language.
+
+The availability of a module in the interface does not imply that its content is complete or clinically validated.
+
+---
+
+## Architecture
+
+CardioGuide AI separates the frontend, backend, research pipeline, language model, and persistent data storage.
 
 ```text
-Medical Knowledge
-       ↓
-Knowledge Structuring
-       ↓
-Source Validation
-       ↓
-Retrieval
-       ↓
-Context-Aware AI Response
-       ↓
-Accessible Health Explanation
+                    USER
+                      |
+                      v
+          React / TypeScript Frontend
+                      |
+                      v
+             FastAPI Backend
+                  (Render)
+                      |
+                      v
+             Query Normalization
+                      |
+                      v
+          Topic and Intent Analysis
+                      |
+                      v
+           Decision and Safety Gate
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+       Clarify     Urgent      Redirect
+          |       Handling         |
+          |           |            |
+          +-----------+------------+
+                      |
+             Educational Requests
+                      |
+                      v
+             Research Query Builder
+                      |
+                      v
+              Serper Web Search
+                      |
+                      v
+          Source and Evidence Processing
+                      |
+                      v
+              Evidence Builder
+                      |
+                      v
+             Response Planner
+                      |
+                      v
+             Groq API / GPT-OSS
+                      |
+                      v
+          Response and Safety Checks
+                      |
+                      v
+          Answer + Available Sources
+                      |
+                      v
+             Neon PostgreSQL
+        Users, Conversations, Messages
 ```
 
-The system should be able to transform complex cardiovascular information into explanations that are easier for a general user to understand without presenting the AI as a replacement for a healthcare professional.
+### Design principles
+
+- **Separation of concerns:** Query analysis, retrieval, planning, generation, and safety checks are handled by distinct components.
+- **Evidence-informed generation:** Retrieved material provides context for educational responses.
+- **Explicit routing:** Ambiguous and out-of-scope questions are not treated as ordinary educational requests.
+- **Persistent conversations:** Database-backed records allow conversation history to be retrieved.
+- **Traceability:** Available source information accompanies responses to help users inspect supporting material.
+
+Retrieval and source attribution improve transparency but do not guarantee that every claim is correct or adequately supported.
+
+## How It Works
+
+A typical educational request follows this sequence:
+
+1. **Receive:** The FastAPI backend receives a user's question.
+2. **Normalize:** Common abbreviations, spelling variations, and informal language are handled.
+3. **Analyze:** The query is classified by topic and intent.
+4. **Route:** The decision gate evaluates ambiguity, urgency, and scope.
+5. **Research:** Appropriate educational questions are converted into search queries.
+6. **Retrieve:** The web research component retrieves potentially relevant information from approved medical-source domains.
+7. **Build evidence:** Retrieved material is processed and organized into usable context.
+8. **Plan:** The response planner determines how to structure the answer.
+9. **Generate:** Groq-hosted GPT-OSS 120B generates the response using the supplied context.
+10. **Validate and return:** Response checks and source handling are applied before the answer is returned to the frontend.
+11. **Persist:** The API stores user and assistant messages in the database.
+
+The research pipeline can use sources such as the World Health Organization (WHO), American Heart Association (AHA), and Mayo Clinic. Their inclusion as sources does not imply endorsement or partnership.
 
 ---
 
-# 👤 Target User
+## Technology Stack
 
-The initial target persona is:
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | React | User interface |
+| Frontend language | TypeScript | Application logic and type safety |
+| Styling | Tailwind CSS | Interface styling |
+| Frontend development | Lovable | Frontend creation and deployment |
+| Backend | Python, FastAPI | REST API and application orchestration |
+| Language model | Groq API, GPT-OSS 120B | Educational response generation |
+| Web research | Serper API | Search result retrieval |
+| Database | Neon PostgreSQL | Persistent application data |
+| ORM | SQLAlchemy | Database models and operations |
+| Backend hosting | Render | API deployment |
+| Containerization | Docker, Docker Compose | Containerized development and deployment |
+| Version control | Git, GitHub | Source control |
 
-### Mary — Hypertension Patient
-
-Mary represents a user who may already have cardiovascular-health concerns but finds medical information difficult to understand.
-
-Typical questions may include:
-
-* What does my blood-pressure reading mean?
-* What is hypertension?
-* What is the difference between systolic and diastolic pressure?
-* What does cholesterol have to do with heart health?
-* What are the common types of cardiovascular disease?
-* What does a medical term in my report mean?
-* Why are certain medications commonly used for cardiovascular conditions?
-* What lifestyle factors are associated with cardiovascular health?
-
-The system is designed to **educate and explain**, rather than independently diagnose or prescribe.
+**Deployment note:** Vercel deployment of the frontend is being explored. The current public frontend link above points to the Lovable deployment.
 
 ---
 
-# 🧩 Core Platform Modules
+## API Overview
 
-The platform is planned around a consistent navigation structure so that personalization changes the **content and experience**, rather than creating completely different interfaces for different users.
+The FastAPI backend exposes endpoints for service health, chat, and conversation retrieval.
 
-## 1. 🤖 AI Health Assistant
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/` | Basic service information |
+| `GET` | `/health` | Health check |
+| `POST` | `/chat` | Submit a question |
+| `GET` | `/conversations/{conversation_id}` | Retrieve a conversation |
+| `GET` | `/users/{user_id}/conversations` | Retrieve a user's conversations |
 
-The central conversational interface.
+### Example chat request
 
-Planned capabilities:
+**Endpoint:** `POST /chat`
 
-* Cardiovascular health questions
-* Plain-language explanations
-* Context-aware conversations
-* Knowledge retrieval
-* Source-grounded responses
-* Follow-up explanations
-* Topic-specific educational guidance
+```json
+{
+  "question": "What is hypertension?",
+  "user_id": "example-user"
+}
+```
+
+An optional `conversation_id` can be supplied to associate the request with an existing conversation.
+
+### Example response structure
+
+```json
+{
+  "action": "proceed",
+  "answer": "An educational explanation of hypertension.",
+  "sources": [],
+  "safety_note": null,
+  "grounded": true
+}
+```
+
+This is an illustrative response structure, not a guarantee of the exact answer or source list for every request.
+
+The API can also return additional fields, including topic, intent, response strategy, and processing time, when available.
+
+### Live endpoints
+
+- **Application:** [cardio-guid.lovable.app](https://cardio-guid.lovable.app/)
+- **API root:** [cardio-guide-ai.onrender.com](https://cardio-guide-ai.onrender.com)
+- **Health:** [cardio-guide-ai.onrender.com/health](https://cardio-guide-ai.onrender.com/health)
 
 ---
 
-## 2. 🩺 Blood Pressure
+## Database Design
 
-Educational module covering:
+CardioGuide AI uses Neon PostgreSQL with SQLAlchemy for persistent storage.
 
-* Blood-pressure fundamentals
-* Systolic and diastolic pressure
-* Blood-pressure measurements
-* Hypertension education
-* Understanding blood-pressure terminology
-* Factors associated with blood pressure
-* Common questions and misconceptions
+The primary database entities are:
 
----
+| Table | Purpose |
+|---|---|
+| `users` | Stores user identifiers and creation timestamps. |
+| `user_profiles` | Stores optional personalization preferences. |
+| `conversations` | Stores conversation metadata and associates conversations with users. |
+| `messages` | Stores user and assistant messages with timestamps. |
 
-## 3. 🧪 Cholesterol
-
-Educational information covering:
-
-* What cholesterol is
-* LDL and HDL
-* Triglycerides
-* Cardiovascular risk concepts
-* Understanding common cholesterol measurements
-* Lifestyle-related information
-* Common terminology
-
----
-
-## 4. 💊 Medication Guide
-
-A structured educational module designed to help users understand cardiovascular medications at a high level.
-
-Planned information structure:
+### Relationship overview
 
 ```text
-Medication
-    ↓
-Medication Class
-    ↓
-General Purpose
-    ↓
-How It Is Commonly Used
-    ↓
-Common Terminology
-    ↓
-Important Safety Information
-    ↓
-Trusted Sources
+User
+ |
+ +---- UserProfile
+ |
+ +---- Conversation
+           |
+           +---- Message
+           +---- Message
+           +---- Message
 ```
 
-The module will **not prescribe medication, recommend doses, or replace professional medical advice**.
+This structure provides a foundation for conversation history and future personalization features.
 
 ---
 
-## 5. 📚 Disease Library
+## Healthcare AI Safety
 
-A structured cardiovascular knowledge library.
+CardioGuide AI is designed for **health education rather than clinical decision-making**.
 
-Initial disease scope includes:
+| Intended use | Restricted use |
+|---|---|
+| Explaining cardiovascular concepts | Providing definitive diagnoses |
+| Explaining medical terminology | Making personalized treatment decisions |
+| General blood pressure education | Prescribing medication or recommending doses |
+| General lifestyle education | Replacing professional medical assessment |
+| Explaining available medical sources | Guaranteeing that an answer is clinically correct |
 
-* Hypertension
-* High Cholesterol
-* Coronary Artery Disease
-* Heart Failure
-* Heart Attack
-* Stroke Prevention
-* Atrial Fibrillation
-* Atherosclerosis
-* Rheumatic Heart Disease
+### Safety-oriented components
 
-Each disease entry is intended to follow a consistent information structure.
+- Ambiguity detection
+- Urgency classification
+- Scope classification
+- Decision gating
+- Evidence-aware response generation
+- Response validation and source handling
 
-### Example structure
+These controls are intended to reduce unsafe or irrelevant responses. They do not establish clinical validation or guarantee that the system will correctly identify every emergency.
 
-```text
-Disease
-├── Overview
-├── What it means
-├── Risk Factors
-├── Common Symptoms
-├── Complications
-├── Diagnosis Concepts
-├── Prevention
-├── Treatment Concepts
-├── Frequently Asked Questions
-└── Trusted References
-```
+If someone may be experiencing a medical emergency, they should seek immediate professional medical care rather than rely on an AI assistant.
 
 ---
 
-# 🌱 6. Lifestyle
+## Testing and Evaluation
 
-A cardiovascular-health education module covering topics such as:
+CardioGuide AI has undergone functional testing across representative backend and API scenarios.
 
-* Physical activity
-* Nutrition
-* Smoking and cardiovascular risk
-* Sleep
-* Stress
-* Weight-related cardiovascular risk
-* General heart-health habits
+### Tested areas
 
-The system will focus on **evidence-based education rather than prescriptive medical treatment plans**.
+- Normal cardiovascular education questions.
+- Retrieval and source-response structure.
+- Ambiguous query handling.
+- Urgent-symptom routing.
+- Out-of-scope request handling.
+- API availability.
+- Database-backed conversation persistence.
+- Language-model integration.
 
----
+The backend has passed representative functional tests. These results should not be interpreted as proof of comprehensive clinical accuracy or safety.
 
-# 📄 7. Medical Report Explainer
+### Evaluation framework
 
-A planned module designed to help users understand terminology and information appearing in medical reports.
+Future systematic evaluation will focus on:
 
-The objective is:
+| Dimension | Evaluation target |
+|---|---|
+| Retrieval quality | Hit rate at K |
+| Groundedness | Percentage of claims supported by retrieved evidence |
+| Relevance | Human-rated relevance to the question |
+| Clarity | Readability and user comprehension |
+| Safety | Performance on a defined safety test set |
+| Source traceability | Percentage of responses with valid, relevant citations |
+| Reliability | API error rate and availability |
 
-```text
-Medical Term / Report Information
-              ↓
-       Plain-language explanation
-              ↓
-       Relevant context
-              ↓
-       Appropriate caution
-```
-
-The system should explain terminology without interpreting a report as a definitive diagnosis.
-
----
-
-# 🧠 AI Architecture
-
-CardioGuide AI is being designed as a **retrieval-augmented conversational system** rather than relying exclusively on a language model's internal knowledge.
-
-### High-level architecture
-
-```text
-                    ┌──────────────────────┐
-                    │       User           │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │    Web Interface     │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │      FastAPI          │
-                    │   Backend / API       │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │ Conversational Layer  │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │ Query Understanding  │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │  Retrieval Pipeline  │
-                    │       (RAG)          │
-                    └──────────┬───────────┘
-                               │
-                  ┌────────────┴────────────┐
-                  ▼                         ▼
-        ┌──────────────────┐      ┌──────────────────┐
-        │ Vector / Search  │      │ Structured       │
-        │ Knowledge Store  │      │ Medical Data     │
-        └────────┬─────────┘      └────────┬─────────┘
-                 │                         │
-                 └────────────┬────────────┘
-                              ▼
-                    ┌──────────────────────┐
-                    │ Retrieved Context    │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │      LLM / AI        │
-                    │ Response Generation  │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │ Safety / Response    │
-                    │ Validation Layer     │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │      User Response   │
-                    └──────────────────────┘
-```
+Quantitative results will be reported once a defined evaluation suite has been run and its results recorded.
 
 ---
 
-# 📚 Medical Knowledge Architecture
+## Project Structure
 
-One of the central engineering challenges in CardioGuide AI is deciding **how medical information should be represented before it reaches the AI system**.
-
-Instead of placing large amounts of unstructured text directly into a retrieval system, the project is being designed around structured knowledge categories.
-
-### Planned hierarchy
-
-```text
-Cardiovascular Health
-│
-├── Diseases
-│   ├── Hypertension
-│   ├── Coronary Artery Disease
-│   ├── Heart Failure
-│   └── ...
-│
-├── Medications
-│   ├── Medication Classes
-│   └── Individual Medications
-│
-├── Blood Pressure
-│
-├── Cholesterol
-│
-├── Lifestyle
-│
-└── Medical Reports
-```
-
-Each knowledge item will contain metadata such as:
-
-```text
-topic
-category
-subtopic
-source
-source_url
-publication_date
-last_reviewed
-evidence_level
-content
-```
-
-This structure is intended to improve retrieval, organization, traceability, and future evaluation.
-
----
-
-# 🔎 Knowledge Collection Pipeline
-
-The project will use a controlled information pipeline rather than collecting arbitrary internet content.
-
-### Planned workflow
-
-```text
-Identify Medical Topic
-        ↓
-Find Authoritative Source
-        ↓
-Extract Relevant Information
-        ↓
-Normalize / Structure Content
-        ↓
-Record Source Metadata
-        ↓
-Review Content
-        ↓
-Store Knowledge
-        ↓
-Prepare for Retrieval
-```
-
-The initial knowledge sources will prioritize reputable medical and public-health organizations and established clinical references.
-
----
-
-# 🤖 RAG Pipeline
-
-The planned retrieval pipeline will follow:
-
-```text
-User Question
-      ↓
-Query Processing
-      ↓
-Intent / Topic Identification
-      ↓
-Relevant Knowledge Retrieval
-      ↓
-Context Ranking
-      ↓
-Context Assembly
-      ↓
-LLM Response Generation
-      ↓
-Safety / Grounding Checks
-      ↓
-Final Response
-```
-
-The purpose of RAG is to provide the language model with **relevant, curated information at response time** rather than relying solely on its pretrained knowledge.
-
----
-
-# 🛡️ Healthcare AI Safety
-
-Safety is a core design requirement.
-
-CardioGuide AI will explicitly distinguish between:
-
-### Allowed
-
-* Educational explanations
-* Definitions
-* General cardiovascular information
-* Explanation of medical terminology
-* General lifestyle education
-* Information about medications
-* Questions about cardiovascular concepts
-
-### Restricted / Redirected
-
-* Definitive diagnosis
-* Personalized treatment decisions
-* Medication prescribing
-* Dose recommendations
-* Emergency medical decision-making
-* Claims that the AI can replace a clinician
-
-The system should encourage users to consult qualified healthcare professionals when questions require clinical judgment.
-
----
-
-# 🏗️ Development Roadmap
-
-The project is organized into the following development phases:
-
-### Phase 1 — Product Discovery & Planning
-
-**Status: ✅ Completed**
-
-* Define product mission
-* Identify target user
-* Define core modules
-* Establish product boundaries
-* Define initial cardiovascular scope
-
-### Phase 2 — Medical Knowledge Design
-
-**Status: 🚧 Current**
-
-* Design knowledge taxonomy
-* Define disease schemas
-* Define medication schemas
-* Define source metadata
-* Design content structures
-* Establish source-validation process
-
-### Phase 3 — Data Collection
-
-**Status: ⏳ Planned**
-
-* Collect authoritative sources
-* Extract relevant content
-* Normalize information
-* Build initial knowledge corpus
-
-### Phase 4 — AI & RAG Design
-
-**Status: ⏳ Planned**
-
-* Select embedding strategy
-* Design retrieval architecture
-* Implement chunking strategy
-* Develop retrieval pipeline
-* Integrate language model
-* Design grounding mechanisms
-
-### Phase 5 — Database Design
-
-**Status: ⏳ Planned**
-
-* Design relational schema
-* Design knowledge storage
-* Implement metadata structure
-* Connect application and knowledge layers
-
-### Phase 6 — Backend Architecture
-
-**Status: ⏳ Planned**
-
-* Build FastAPI backend
-* Implement authentication
-* Implement API endpoints
-* Connect database
-* Implement AI services
-
-### Phase 7 — UI/UX Design
-
-**Status: ⏳ Planned**
-
-* Build application interface
-* Implement personalized content experience
-* Design conversational interface
-* Implement accessibility-focused layouts
-
-### Phase 8 — Frontend Development
-
-**Status: ⏳ Planned**
-
-* Implement React frontend
-* Connect backend APIs
-* Implement AI assistant
-* Implement educational modules
-
-### Phase 9 — AI Integration
-
-**Status: ⏳ Planned**
-
-* Integrate RAG
-* Connect LLM
-* Implement context management
-* Implement response validation
-* Evaluate responses
-
-### Phase 10 — Specialized Modules
-
-**Status: ⏳ Planned**
-
-* Blood Pressure
-* Cholesterol
-* Medication Guide
-* Disease Library
-* Lifestyle
-* Medical Report Explainer
-
-### Phase 11 — Testing
-
-**Status: ⏳ Planned**
-
-* Functional testing
-* Retrieval evaluation
-* Response-quality evaluation
-* Grounding evaluation
-* Safety testing
-* Edge-case testing
-
-### Phase 12 — Dockerization & Deployment
-
-**Status: ⏳ Planned**
-
-* Containerize services
-* Configure production environment
-* Deploy backend
-* Deploy frontend
-* Configure monitoring
-
-### Phase 13 — Documentation
-
-**Status: ⏳ Planned**
-
-* API documentation
-* Architecture documentation
-* Knowledge-source documentation
-* Evaluation results
-* Deployment documentation
-
----
-
-# 🧪 Evaluation Strategy
-
-The project will not evaluate the AI solely on whether an answer "sounds good."
-
-Planned evaluation dimensions include:
-
-| Dimension               | Goal                                            |
-| ----------------------- | ----------------------------------------------- |
-| **Retrieval Accuracy**  | Retrieve relevant medical information           |
-| **Groundedness**        | Keep responses supported by retrieved context   |
-| **Answer Relevance**    | Directly address the user's question            |
-| **Clarity**             | Explain medical concepts in accessible language |
-| **Safety**              | Avoid inappropriate medical recommendations     |
-| **Consistency**         | Produce stable answers to similar questions     |
-| **Source Traceability** | Identify where information originated           |
-
----
-
-# 🛠️ Planned Technology Stack
-
-### AI / ML
-
-* Python
-* PyTorch
-* Hugging Face ecosystem
-* Transformer models
-* Embedding models
-* Retrieval-Augmented Generation
-
-### Backend
-
-* FastAPI
-* REST APIs
-* Python
-
-### Data
-
-* PostgreSQL
-* Vector search / vector database
-* Structured medical knowledge base
-
-### Frontend
-
-* React
-* TypeScript
-* Tailwind CSS
-
-### Deployment
-
-* Docker
-* Cloud deployment
-* GitHub
-
-> Technology choices may change during development as the architecture is evaluated.
-
----
-
-# 📁 Planned Repository Structure
+The backend project is located in `phase_1_research_engine/`.
 
 ```text
 cardio-guide-ai/
 │
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── models/
-│   │   ├── services/
-│   │   └── main.py
-│   │
-│   └── requirements.txt
+├── api/
+│   ├── main.py
+│   └── schemas.py
 │
-├── frontend/
-│   ├── src/
-│   └── package.json
+├── database/
+│   ├── base.py
+│   ├── connection.py
+│   ├── crud.py
+│   └── models.py
+│
+├── query_engine/
+│   ├── ambiguity_detector.py
+│   ├── analyzer.py
+│   ├── cardio_guide.py
+│   ├── decision_gate.py
+│   ├── evidence_builder.py
+│   ├── normalizer.py
+│   ├── research_query_builder.py
+│   ├── response_generator.py
+│   ├── response_planner.py
+│   ├── llm_client.py
+│   └── web_searcher.py
+│
+├── query_engine/tests/
+│   └── test_cardio_guide.py
 │
 ├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── schemas/
+│   └── cardioguide_queries.csv
 │
-├── knowledge/
-│   ├── diseases/
-│   ├── medications/
-│   ├── blood_pressure/
-│   ├── cholesterol/
-│   ├── lifestyle/
-│   └── medical_reports/
+├── pictures/
+│   ├── landing.png
+│   ├── chat.png
+│   └── extra.png
 │
-├── evaluation/
-│   ├── datasets/
-│   ├── retrieval/
-│   └── responses/
-│
-├── docs/
-│   ├── architecture/
-│   ├── knowledge_design/
-│   └── evaluation/
-│
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── .dockerignore
 ├── .gitignore
-├── README.md
-└── LICENSE
+├── .env
+└── README.md
 ```
 
----
+The actual repository may contain additional files. Environment files containing API keys or database credentials should never be committed to GitHub.
 
-# 📈 Current Development Status
-
-**Current Phase: Phase 2 — Medical Knowledge Design**
-
-### Completed
-
-* Product discovery
-* Target persona definition
-* Core product architecture
-* Navigation structure
-* Cardiovascular disease scope
-* Initial module definitions
-* Healthcare safety boundaries
-
-### Currently Working On
-
-* Medical knowledge taxonomy
-* Disease schemas
-* Medication schemas
-* Source structure
-* Knowledge metadata
-* Source collection strategy
-
-### Next Milestone
-
-Build the first **validated cardiovascular knowledge corpus** that can serve as the foundation for the future RAG pipeline.
+**Screenshot paths:** The README references the images using `phase_1_research_engine/pictures/`. Keep the image links aligned with the actual folder location in your GitHub repository.
 
 ---
 
-# 🎯 Long-Term Objective
+## Project Status
 
-CardioGuide AI is ultimately intended to demonstrate how **machine learning, NLP, information retrieval, and software engineering can be combined to build a responsible healthcare education product**.
+CardioGuide AI has progressed beyond an interface-only prototype.
 
-The project is being developed incrementally, with emphasis on:
+| Component | Status |
+|---|---|
+| Product direction and safety boundaries | Implemented |
+| Frontend interface | Built and deployed on Lovable |
+| FastAPI backend | Deployed on Render |
+| Query normalization and routing | Implemented |
+| Web research integration | Integrated with Serper |
+| LLM response generation | Integrated with Groq |
+| Database persistence | Configured with Neon PostgreSQL |
+| Source handling | Implemented; requires continued quality evaluation |
+| Functional backend tests | Representative tests passed |
+| Comprehensive clinical validation | Not established |
+| Vercel frontend deployment | Being explored |
+| Systematic evaluation results | Further work required |
 
-**Reliable knowledge → Strong retrieval → Grounded AI → Safe interaction → Useful product**
-
----
-
-# ⚠️ Disclaimer
-
-CardioGuide AI is an **educational software project**.
-
-It is not a medical device and is not intended to:
-
-* Diagnose diseases
-* Prescribe medication
-* Recommend medication dosages
-* Replace healthcare professionals
-* Provide emergency medical advice
-* Make clinical decisions on behalf of users
-
-Users should consult qualified healthcare professionals for medical diagnosis, treatment, or other clinical decisions.
+The application is functional, but the completeness, accuracy, and safety of its medical coverage require continued evaluation.
 
 ---
 
-# 👨‍💻 Developer
+## Roadmap
+
+- [x] Define product direction and target persona.
+- [x] Build the frontend experience.
+- [x] Implement the FastAPI backend.
+- [x] Implement query normalization and request routing.
+- [x] Integrate web research through Serper.
+- [x] Integrate Groq-hosted GPT-OSS 120B.
+- [x] Configure PostgreSQL persistence with Neon.
+- [x] Deploy the backend to Render.
+- [x] Test representative API and routing scenarios.
+- [ ] Complete and verify the preferred frontend deployment.
+- [ ] Improve retrieval relevance for complex, multi-part questions.
+- [ ] Expand cardiovascular knowledge coverage.
+- [ ] Build a repeatable automated evaluation suite.
+- [ ] Publish measured retrieval, groundedness, and safety results.
+- [ ] Continue security, reliability, and safety testing.
+
+---
+
+## Limitations
+
+- Retrieved sources may not fully address every part of a complex question.
+- Search relevance and source availability can vary.
+- Language models can produce inaccurate, incomplete, or misleading explanations.
+- Source attribution does not guarantee that every claim is supported by the cited material.
+- Coverage and quality may vary between cardiovascular topics.
+- The application has not been established as a clinically validated medical product.
+- Medical recommendations and evidence may change over time.
+
+CardioGuide AI should be used as an educational aid, not as a substitute for professional healthcare.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11 or a compatible Python version supported by the project.
+- Git.
+- Access to the required API services.
+- A PostgreSQL database.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Rbolarinwa-DS/cardio-guide-ai.git
+cd cardio-guide-ai
+```
+
+### 2. Navigate to the backend project
+
+```bash
+cd phase_1_research_engine
+```
+
+### 3. Create and activate a virtual environment
+
+On Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 4. Install dependencies
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+### 5. Configure environment variables
+
+Create a local `.env` file containing the required configuration:
+
+```dotenv
+DATABASE_URL=your_postgresql_connection_string
+GROQ_API_KEY=your_groq_api_key
+SERPER_API_KEY=your_serper_api_key
+```
+
+Use the actual environment-variable names expected by the project. Keep all credentials private and out of version control.
+
+### 6. Start the API
+
+From the backend project directory:
+
+```powershell
+python -m uvicorn api.main:app --reload
+```
+
+The API should be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+Interactive API documentation is normally available at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Local startup requires valid configuration, network access to the external services, and an accessible database.
+
+---
+
+## Author
 
 **Rahman Bolarinwa**
 
-Computer Science Student | Machine Learning Engineer | AI Developer
+Computer Science student building projects in machine learning, AI engineering, NLP, retrieval-augmented generation, computer vision, and end-to-end AI deployment.
 
-Interested in:
-
-* Healthcare AI
-* Machine Learning Engineering
-* NLP
-* Computer Vision
-* LLM Applications
-* RAG
-* Explainable AI
-* AI Product Development
-* ML Deployment & MLOps
-
-GitHub: **https://github.com/Rbolarinwa-DS**
+- **GitHub:** [Rbolarinwa-DS](https://github.com/Rbolarinwa-DS)
 
 ---
 
-## 📌 Project Status
-
-**🚧 Active Development**
-
-> This repository documents the development of CardioGuide AI from product discovery and medical knowledge design through AI architecture, implementation, evaluation, and deployment.
-
-**Last Updated: August 2026**
+<p align="center">
+  ❤️ <strong>CardioGuide AI</strong>
+  <br>
+  Making cardiovascular health easier to understand, one conversation at a time.
+  <br><br>
+  <a href="https://cardio-guid.lovable.app/">
+    <img src="https://img.shields.io/badge/🚀_TRY_THE_LIVE_DEMO-16a34a?style=for-the-badge" alt="Try the CardioGuide AI Live Demo">
+  </a>
+</p>
